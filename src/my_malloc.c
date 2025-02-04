@@ -47,3 +47,23 @@ void *my_malloc(size_t size)
 
     return block;
 }
+
+void *my_calloc(size_t n, size_t size)
+{
+    size_t res;
+
+    if (__builtin_mul_overflow(n, size, &res))
+        return NULL;
+
+    char *arr = my_malloc(size * n);
+
+    if (arr == NULL)
+        return NULL;
+
+    for (size_t i = 0; i < n * size; i++)
+    {
+        arr[i] = 0;
+    }
+
+    return arr;
+}
