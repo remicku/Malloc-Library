@@ -48,6 +48,48 @@ void *my_malloc(size_t size)
     return block;
 }
 
+void my_free(void *ptr)
+{
+    if (ptr == NULL)
+        return;
+
+    void *p = page_begin(ptr, sysconf(_SC_PAGESIZE));
+    struct bucket *b = bl.data;
+    struct bucket *prev = b;
+
+    while (b != NULL && b != p)
+    {
+        prev = b;
+        b = b->next;
+    }
+
+    if (b == NULL)
+        return;
+
+    void *chunk_start = b->chunk;
+    char *chunk_end = (char *)chunk_start + (b->block_size * b->capacity);
+
+    if (ptr < chunk_start || ptr >= (void *)chunk_end)
+        return;
+
+    block_free(b, ptr);
+
+    if (b->block_used == 0)
+    {
+        if (b == bl.data)
+        {
+            prev = b->next;
+            bl.data = prev;
+        }
+        else
+        {
+            prev->next = b->next;
+        }
+
+        bucket_destroy(b);
+    }
+}
+
 void *my_calloc(size_t n, size_t size)
 {
     size_t res;
