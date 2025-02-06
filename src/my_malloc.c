@@ -90,6 +90,44 @@ void my_free(void *ptr)
     }
 }
 
+void *my_realloc(void *ptr, size_t size)
+{
+    if (ptr == NULL)
+        return my_malloc(size);
+
+    if (size == 0)
+    {
+        my_free(ptr);
+        return NULL;
+    }
+
+    void *page = page_begin(ptr, sysconf(_SC_PAGESIZE));
+
+    struct bucket *b = bl.data;
+
+    while (b != NULL && b != page)
+        b = b->next;
+
+    if (b == NULL)
+    {
+        return NULL;
+    }
+
+    if (size <= b->block_size)
+        return ptr;
+
+    void *p = my_malloc(size);
+
+    if (p == NULL)
+        return NULL;
+
+    memcpy(p, ptr, b->block_size);
+
+    my_free(ptr);
+
+    return p;
+}
+
 void *my_calloc(size_t n, size_t size)
 {
     size_t res;
