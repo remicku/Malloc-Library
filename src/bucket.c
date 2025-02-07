@@ -26,7 +26,7 @@ struct bucket *bucket_create(size_t block_size, size_t total_size)
     b->size = total_size;
     b->block_size = block_size;
     b->capacity =
-        (total_size - sizeof(struct bucket))
+        (total_size - align(sizeof(struct bucket), sizeof(long double)))
         / block_size;
     b->chunk = (void *)align((size_t)(b + 1), sizeof(long double));
 
